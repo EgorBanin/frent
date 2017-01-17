@@ -1,8 +1,8 @@
 var tpl = {
-    form: require('./formTpl.html')
+	form: require('./formTpl.html')
 };
 
-var Screen = function(app) {
+var Screen = function() {
 	
 	var _this = this;
 	
@@ -16,10 +16,12 @@ var Screen = function(app) {
 	
 	var _submit = function() {
 		// validation
-		var formData = _this.$el.find('form').serialize();
+		var $form = $(this);
+		var url = $form.attr('action');
+		var formData = $form.serialize();
 		$.ajax({
 			method: 'post',
-			url: '/login',
+			url: url,
 			data: formData,
 			dataType: 'json',
 			beforeSend: function() {},

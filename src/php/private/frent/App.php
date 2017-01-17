@@ -4,6 +4,8 @@ namespace frent;
 
 class App {
 	
+	public $db;
+
 	private $actionDir;
 	
 	private $templateDir;

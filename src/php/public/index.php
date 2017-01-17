@@ -14,10 +14,14 @@ $configFile = getenv('PHP_USER_CONFIG')?: 'config.php';
 $config = require 'frent/'.$configFile;
 
 $app = new App($appDir.'/frent/actions', $appDir.'/frent/templates');
+$app->db = \Mysql\Client::init($config['mysql']['username'], $config['mysql']['password'])
+	->defaultDb($config['mysql']['db'])
+	->charset($config['mysql']['charset']);
 
 $routes = [
 	'~^/$~' => 'index.php',
 	'~^/login$~' => 'login.php',
+	'~^/signup$~' => 'signup.php',
 	'~/(?<slug>[^/]+$)~' => 'pages/view.php',
 ];
 $currentRequest = http_get_current_request();

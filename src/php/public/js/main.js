@@ -94,7 +94,9 @@ var Screen = function(app) {
 				if (data.session) {
 					app.go('/');
 				} else {
-					_this.error(data.errors[0]);
+					_.each(data.errors, function(error) {
+						_this.error(error);
+					});
 				}
 			},
 			error: function() {
@@ -126,9 +128,78 @@ var Screen = function(app) {
 module.exports = Screen;
 
 },{"./formTpl.html":3}],3:[function(require,module,exports){
-module.exports = "<form method=\"post\">\n\t<input name=\"login\" type=\"text\">\n\t<input name=\"password\" type=\"password\">\n\t<button type=\"submit\">Login</button>\n</form>";
+module.exports = "<form action=\"/login\" method=\"post\">\n\t<input name=\"login\" type=\"text\">\n\t<input name=\"password\" type=\"password\">\n\t<button type=\"submit\">Login</button>\n</form>";
 
 },{}],4:[function(require,module,exports){
+var tpl = {
+	form: require('./formTpl.html')
+};
+
+var Screen = function() {
+	
+	var _this = this;
+	
+	var _formTpl;
+	
+	this.$el;
+	
+	this.error = function(message) {
+		alert(message);
+	};
+	
+	var _submit = function() {
+		// validation
+		var $form = $(this);
+		var url = $form.attr('action');
+		var formData = $form.serialize();
+		$.ajax({
+			method: 'post',
+			url: url,
+			data: formData,
+			dataType: 'json',
+			beforeSend: function() {},
+			complete: function() {},
+			success: function(data) {
+				console.log(data);
+				if (data.session) {
+					app.go('/');
+				} else {
+					_.each(data.errors, function(error) {
+						_this.error(error);
+					});
+				}
+			},
+			error: function() {
+				_this.error(':-(');
+			}
+		});
+		
+		return false;
+	};
+	
+	var _bind = function() {
+		_this.$el.on('submit', 'form', _submit);
+	};
+	
+	var _render = function($content) {
+		_this.$el.empty().append($content);
+	};
+	
+	// INIT
+	(function() {
+		_this.$el = $('<div />');
+		_formTpl = _.template(tpl.form);
+		_render(_formTpl());
+		_bind();
+	})();
+	
+};
+
+module.exports = Screen;
+},{"./formTpl.html":5}],5:[function(require,module,exports){
+module.exports = "<form action= \"/signup\" method=\"post\">\n\t<input name=\"login\" type=\"text\">\n\t<input name=\"password\" type=\"password\">\n\t<button type=\"submit\">Зарегистрироваться</button>\n</form>";
+
+},{}],6:[function(require,module,exports){
 var startTpl = require('./startTpl.html');
 
 var Screen = function(app) {
@@ -154,22 +225,24 @@ var Screen = function(app) {
 
 module.exports = Screen;
 
-},{"./startTpl.html":5}],5:[function(require,module,exports){
-module.exports = "добро пожаловать\n<div><a href=\"/login\">login</a></div>";
+},{"./startTpl.html":7}],7:[function(require,module,exports){
+module.exports = "добро пожаловать, друзья\n<div>\n\t<a href=\"/login\">вход</a>\n\t<a href=\"/signup\">регистрация</a>\n</div>";
 
-},{}],6:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 var App = require('./frent/App.js');
 
 var StartScreen = require('./frent/Start/StartScreen.js');
 var LoginScreen = require('./frent/Login/LoginScreen.js');
+var SignupScreen = require('./frent/Signup/SignupScreen.js');
 
 $(document).ready(function() {
 	var routes = {
 		'^/$': StartScreen,
-		'^/login$': LoginScreen
+		'^/login$': LoginScreen,
+		'^/signup$': SignupScreen
 	};
 	var app = new App($('#frent'), routes);
 	app.go(window.location.href);
 	
 });
-},{"./frent/App.js":1,"./frent/Login/LoginScreen.js":2,"./frent/Start/StartScreen.js":4}]},{},[6]);
+},{"./frent/App.js":1,"./frent/Login/LoginScreen.js":2,"./frent/Signup/SignupScreen.js":4,"./frent/Start/StartScreen.js":6}]},{},[8]);
