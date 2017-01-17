@@ -5,6 +5,8 @@ namespace frent;
 class App {
 	
 	public $db;
+	
+	public $auth;
 
 	private $actionDir;
 	

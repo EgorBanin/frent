@@ -17,6 +17,7 @@ $app = new App($appDir.'/frent/actions', $appDir.'/frent/templates');
 $app->db = \Mysql\Client::init($config['mysql']['username'], $config['mysql']['password'])
 	->defaultDb($config['mysql']['db'])
 	->charset($config['mysql']['charset']);
+$app->auth = new Auth();
 
 $routes = [
 	'~^/$~' => 'index.php',

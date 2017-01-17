@@ -34,8 +34,8 @@ return function($app, $params) {
 			'passwordHash' => hash('sha512', $login.$password, true),
 			'active' => true,
 		]);
-		// login
-		$sessionId = 1;
+		$app->auth->logout();
+		$sessionId = $app->auth->login($id);
 	}
 	
 	return json_encode([

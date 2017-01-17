@@ -32,8 +32,7 @@ return function($app, $params) {
 	}
 	
 	if (empty($errors)) {
-		// login
-		$sessionId = 1;
+		$sessionId = $app->auth->login($user['id']);
 	}
 	
 	return json_encode([
