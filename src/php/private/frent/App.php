@@ -11,10 +11,13 @@ class App {
 	private $actionDir;
 	
 	private $templateDir;
+	
+	private $router;
 
-	public function __construct($actionDir, $templateDir) {
+	public function __construct($actionDir, $templateDir, Router $router) {
 		$this->actionDir = $actionDir;
 		$this->templateDir = $templateDir;
+		$this->router = $router;
 	}
 	
 	public function run($action, $params) {
@@ -42,7 +45,7 @@ class App {
 			list($code, $headers, $body) = $response;
 		}
 		
-		http_send_request($code, $headers, $body);
+		io_send_response($code, $headers, $body);
 	}
 	
 	public function error($message) {
@@ -57,28 +60,8 @@ class App {
 		return ob_include($templateFile, $params);
 	}
 	
-	public static function route($url, $routes) {
-		$params = [];
-		$pattern = arr_usearch($routes, function($pattern) use($url, &$params) {
-			$matches = [];
-			if (preg_match($pattern, $url, $matches) === 1) {
-				foreach ($matches as $name => $value) {
-					if ( ! ctype_digit((string) $name)) {
-						$params[$name] = $value;
-					}
-				}
-
-				return $pattern;
-			}
-		});
-		
-		if ($pattern !== false) {
-			$action = str_template($routes[$pattern], $params);
-			
-			return [$action, $params];
-		} else {
-			return false;
-		}
+	public function route($url) {
+		return $this->router->route($url, $this->actionDir);
 	}
 	
 }

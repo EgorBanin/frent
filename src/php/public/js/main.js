@@ -90,8 +90,7 @@ var Screen = function(app) {
 			beforeSend: function() {},
 			complete: function() {},
 			success: function(data) {
-				console.log(data);
-				if (data.session) {
+				if (data.sessionId) {
 					app.go('/');
 				} else {
 					_.each(data.errors, function(error) {
@@ -161,7 +160,7 @@ var Screen = function() {
 			complete: function() {},
 			success: function(data) {
 				console.log(data);
-				if (data.session) {
+				if (data.sessionId) {
 					app.go('/');
 				} else {
 					_.each(data.errors, function(error) {
