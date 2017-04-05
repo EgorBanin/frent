@@ -11,7 +11,6 @@ $config = require $appDir.'/frent/'.$configFile;
 
 $app = new App(
 	$appDir.'/frent/actions',
-	$appDir.'/frent/templates',
 	new Router([
 		'~^/$~' => 'index.php',
 		'~^/login$~' => 'login.php',
@@ -22,7 +21,6 @@ $app = new App(
 $app->db = \Mysql\Client::init($config['mysql']['username'], $config['mysql']['password'])
 	->defaultDb($config['mysql']['db'])
 	->charset($config['mysql']['charset']);
-$app->auth = new Auth();
 
 $currentRequest = io_get_request();
 $url = parse_url($currentRequest['url'], PHP_URL_PATH);

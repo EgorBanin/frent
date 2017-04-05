@@ -4,6 +4,6 @@ namespace frent;
 
 return function($app, $params) {
 	
-	return $app->template('html.php');
+	return ob_include(__DIR__.'/html.tpl.php');
 	
 };

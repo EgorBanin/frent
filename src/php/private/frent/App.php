@@ -6,33 +6,21 @@ class App {
 	
 	public $db;
 	
-	public $auth;
+	private $auth;
 
 	private $actionDir;
 	
-	private $templateDir;
-	
 	private $router;
 
-	public function __construct($actionDir, $templateDir, Router $router) {
+	public function __construct($actionDir, Router $router) {
 		$this->actionDir = $actionDir;
-		$this->templateDir = $templateDir;
 		$this->router = $router;
+		$this->auth = new Auth();
 	}
 	
 	public function run($action, $params) {
-		$actionFile = $this->actionDir.'/'.$action;
-		if ( ! is_readable($actionFile)) {
-			$this->error('Не удалось подключить файл '.$actionFile);
-		}
-		
-		$func = require($actionFile);
-		if ( ! is_callable($func)) {
-			$this->error('Неверный результат подключения '.$actionFile);
-		}
-		
 		try {
-			$response = call_user_func($func, $this, $params);
+			$response = call_user_func($action, $this, $params);
 		} catch (Exception $e) {
 			$this->error('Непредвиденная ошибка: '.$e->getMessage());
 		}
@@ -48,20 +36,38 @@ class App {
 		io_send_response($code, $headers, $body);
 	}
 	
-	public function error($message) {
+	public function error($message) { // todo
 		echo $message;
 		
 		exit(1);
 	}
 	
-	public function template($template, $params = []) {
-		$templateFile = $this->templateDir.'/'.$template;
-		
-		return ob_include($templateFile, $params);
-	}
-	
 	public function route($url) {
 		return $this->router->route($url, $this->actionDir);
+	}
+	
+	public function login($userId) {
+		return $this->auth->login($userId);
+	}
+	
+	public function logout() {
+		$this->auth->logout();
+	}
+	
+	public function auth() {
+		$userId = $this->auth->auth();
+		if ($userId) {
+			$mapper = new User\Mapper($this->db);
+			$user = $mapper->get($id);
+		} else {
+			$user = false;
+		}
+		
+		if ( ! $user) {
+			$this->error('401 Требуется авторизация');
+		}
+		
+		return $user;
 	}
 	
 }

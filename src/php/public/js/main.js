@@ -3,7 +3,28 @@ var App = function($el, routes) {
 	
 	var _this = this;
 	
-	var _route = function(url, routes) {
+	(function() {
+		_bind();
+	})();
+	
+	this.open = function(url) {
+		var a = document.createElement('a');
+		a.href = url;
+		var route = _route(a.pathname, routes);
+		if (route) {
+			var screen = new route.screen(_this, route.params);
+			_render(screen.$el);
+		} else {
+			alert('404');
+		}
+	};
+	
+	this.go = function(url) {
+		window.history.pushState({}, '', url);
+		this.open(url);
+	};
+	
+	function _route(url, routes) {
 		var route = false;
 		for (var pattern in routes) {
 			var regex = new RegExp(pattern);
@@ -20,7 +41,11 @@ var App = function($el, routes) {
 		return route;
 	};
 	
-	var _bind = function() {
+	function _render($content) {
+		$el.empty().append($content);
+	};
+	
+	function _bind() {
 		// обрабатываем переходы по всем всем ссылкам
 		$el.on('click', 'a', function() {
 			var href = $(this).attr('href');
@@ -30,33 +55,9 @@ var App = function($el, routes) {
 		});
 		// обрабатываем переходы по истории
 		$(window).on('popstate', function() {
-			_this.go(window.location.href);
+			_this.open(window.location.href);
 		});
 	};
-	
-	var _render = function($content) {
-		$el.empty().append($content);
-	};
-	
-	
-	this.go = function(url) {
-		window.history.pushState({}, '', url);
-		var a = document.createElement('a');
-		a.href = url;
-		var route = _route(a.pathname, routes);
-		if (route) {
-			var screen = new route.screen(_this, route.params);
-			_render(screen.$el);
-		} else {
-			alert('404');
-		}
-	};
-	
-	// INIT
-	(function() {
-		_bind();
-	})();
-	
 };
 
 module.exports = App;
