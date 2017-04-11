@@ -19,6 +19,19 @@ function($app) {
 	}
 	
 	if (empty($errors)) {
-		// создать
+		$mapper = new Profile\Mapper($app->db);
+		$id = $mapper->insert([
+			'name' => $name,
+			'summary' => $summary,
+			'userId' => $user['id'],
+			'ct' => time(),
+		]);
+	} else {
+		$id = null;
 	}
+	
+	return json_encode([
+		'id' => $id,
+		'errors' => $errors,
+	], JSON_UNESCAPED_UNICODE);
 };

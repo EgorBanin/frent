@@ -1,12 +1,11 @@
 <?php
 
-namespace frent\User;
+namespace frent\Profile;
 
 class Mapper extends \frent\DbMapper {
 	
 	protected function table() {
-		return $this->db->table('users');
+		return $this->db->table('profiles');
 	}
 	
 }
-
