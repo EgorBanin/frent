@@ -1,14 +1,27 @@
 use `frent`;
 
+drop table if exists `sessions`;
+create table `sessions` (
+	`id` int unsigned not null auto_increment,
+	`token` binary(20) not null,
+	`description` varchar(255) not null,
+	`deleted` bool not null,
+	`ut` int unsigned not null,
+	`data` json not null,
+	primary key (`id`)
+	)
+engine InnoDB
+comment 'Сессии';
+
+
 drop table if exists `users`;
 create table `users` (
 	`id` int unsigned not null auto_increment,
 	`login` varchar(255) binary not null,
 	`loginHash` binary(16) not null comment 'raw md5',
 	`passwordHash` binary(64) not null comment 'raw sha512',
-	`lastVisitTime` int unsigned not null default 0,
-	`lastVisitIP` int unsigned not null default 0,
-	`active` bool not null default false,
+	`data` json not null comment 'JSON, данные пользователя',
+	`active` bool not null,
 	primary key (`id`),
 	unique key `loginHash` (`loginHash`)
 )

@@ -8,8 +8,5 @@ return [
 		'db' => 'frent',
 		'charset' => 'utf8',
 	],
-	'sessions' => [
-		
-	]
 ];
 
