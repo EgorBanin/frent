@@ -1,6 +1,10 @@
 <?php
 
-namespace frent;
+
+/**
+ * Набор полезных PHP-функций
+ * @link https://github.com/EgorBanin/wub
+ */
 
 
 /**
@@ -61,6 +65,76 @@ function arr_update(&$array, $update) {
 }
 
 /**
+ * Получить массив только с указанными ключами
+ * @param array $array
+ * @param array $keys
+ * @return array
+ */
+function arr_pick($array, $keys) {
+	return array_intersect_key($array, array_flip($keys));
+}
+
+/**
+ * Получить массив без указанных ключей
+ * @param array $array
+ * @param array $keys
+ * @return array
+ */
+function arr_omit($array, $keys) {
+	return array_diff_key($array, array_flip($keys));
+}
+
+/**
+ * Проиндексировать список массивов по ключу
+ * @param array $array массив ассосиативных массивов
+ * @param string $key
+ * @return array
+ */
+function arr_index($array, $key) {
+	$index = [];
+	foreach ($array as $v) {
+		if (array_key_exists($key, $v)) {
+			$index[$v[$key]] = $v;
+		}
+	}
+	
+	return $index;
+}
+
+
+/**
+ * Получить комбинации значений массивов
+ * @param array $arr1,... массивы, значения которых комбинируются
+ * @return array
+ */
+function arr_comb(...$arrs) {
+	$size = count($arrs);
+	if ($size === 2) {
+		list($a, $b) = $arrs;
+		$combs = [];
+		foreach ($a as $aVal) {
+			foreach ($b as $bVal) {
+				$combs[] = [$aVal, $bVal];
+			}
+		}
+
+		return $combs;
+	} elseif ($size > 2) {
+		$last = array_pop($arrs);
+		$combs = arr_comb(arr_comb(...$arrs), $last);
+
+		return array_map(function($comb) {
+			$flat = array_values($comb[0]); // разворачиваем только первый
+			$flat[] = $comb[1];
+
+			return $flat;
+		}, $combs);
+	} else {
+		return $arrs;
+	}
+}
+
+/**
  * Получить текущий запрос
  * Заголовки получаются с помощью io_get_request_headers.
  * Имена заголовков приводятся к виду Имя-Заголовка. Будте внимательны,
@@ -73,6 +147,13 @@ function io_get_request() {
 
 	if ($current) {
 		return $current;
+	}
+
+	if (isset($_SERVER['SERVER_PROTOCOL'])) {
+		$protocol = $_SERVER['SERVER_PROTOCOL'];
+	} else {
+		trigger_error('Can\'t find server protocol', \E_USER_WARNING);
+		$protocol = 'UNKNOWN';
 	}
 
 	if (isset($_SERVER['REQUEST_METHOD'])) {
@@ -99,10 +180,16 @@ function io_get_request() {
 	$body = file_get_contents('php://input');
 
 	return [
+		0 => $protocol,
+		'protocol' => $protocol,
+		1 => $method,
 		'method' => $method,
+		2 => $url,
 		'url' => $url,
+		3 => $headers,
 		'headers' => $headers,
-		'body' => $body
+		4 => $body,
+		'body' => $body,
 	];
 }
 
@@ -160,33 +247,34 @@ function io_send_response($code, $headers, $body) {
 }
 
 /**
- * Отправить ответ редиректа и завершить выполнение
- * @param string $url
- * @param int $code
+ * Получить опции командной строки
+ * @param array $args аргументы командной строки. Если не переданы, используется $argv.
+ * @global array $argv
+ * @return array
  */
-function io_redirect($url, $code = 302) {
-	io_send_response($code, ['Location: '.$url], '');
-	exit(0);
-}
+function io_opt($args = null) {
+	if ($args === null) {
+		global $argv;
+		$args = $argv;
+		array_shift($args);
+	}
 
-/**
- * Получить переменную из $_GET массива
- * @param string $key
- * @param mixed $defaultValue
- * @return mixed
- */
-function io_get($key, $defaultValue = null) {
-	return array_key_exists($key, $_GET)? $_GET[$key] : $defaultValue;
-}
-
-/**
- * Получить переменную из $_POST массива
- * @param string $key
- * @param mixed $defaultValue
- * @return mixed
- */
-function io_post($key, $defaultValue = null) {
-	return array_key_exists($key, $_POST)? $_POST[$key] : $defaultValue;
+	$opt = [];
+	foreach ($args as $v) {
+		$kv = explode('=', $v);
+		if (count($kv) === 2) {
+			list($name, $value) = $kv;
+			$value = trim($value);
+		} else {
+			$name = $v;
+			$value = true;
+		}
+		
+		$name = ltrim(trim($name), '-');
+		$opt[$name] = $value;
+	}
+	
+	return $opt;
 }
 
 /**
@@ -244,18 +332,76 @@ function ob_include($file, array $params = []) {
 	return ob_get_clean();	
 }
 
+
 /**
- * var_dump с выводом файла и строки, в котором он вызван
- * Функция помечена как deprecated для дополнительной подсветки IDE
- * @param mixed ...$var
- * @deprecated
+ * Выполнить HTTP-запрос
+ * Для работы функции необходима включённая директива allow_url_fopen.
+ * @param string $method
+ * @param string $url
+ * @param array $headers массив строк-заголовков
+ * @param string $body
+ * @param array $options опции контекста
+ * @throws \Exception
  */
-function DEBUG() {
-	$backtrace = debug_backtrace(
-		DEBUG_BACKTRACE_IGNORE_ARGS & ~DEBUG_BACKTRACE_PROVIDE_OBJECT,
-		1
-	);
-	echo $backtrace[0]['file'].':'.$backtrace[0]['line']."\n";
-	$vars = func_get_args();
-	call_user_func_array('var_dump', $vars);
+function http_request($method, $url, array $headers, $body, array $options = []) {
+	$options['http'] = [
+		'method' => $method,
+		'header' => $headers,
+		'content' => $body,
+		'max_redirects' => 0,
+		'ignore_errors' => 1,
+	];
+	$context = stream_context_create($options);
+	$stream = @fopen($url, 'r', false, $context);
+	if ($stream === false) {
+		throw new \Exception('Не удалось выполнить запрос '.$method.' '.$url);
+	}
+	$meta = stream_get_meta_data($stream);
+	$responseHeaders = isset($meta['wrapper_data'])? $meta['wrapper_data'] : [];
+	$responseBody = stream_get_contents($stream);
+	fclose($stream);
+	$responseStatus = [];
+	if (preg_match(
+		'/^(?<protocol>https?\/[0-9\.]+)\s+(?<code>\d+)\s+(?<comment>\S.*)$/i',
+		reset($responseHeaders),
+		$responseStatus
+	) !== 1) {
+		throw new \Exception('Не удалось распарсить статус ответа');
+	}
+	
+	return [
+		'code' => $responseStatus['code'],
+		'headers' => $responseHeaders,
+		'body' => $responseBody,
+	];
+}
+
+
+
+function file_empty_dir($dir, $filter = null) {
+	if ( ! $filter) {
+		$filter = function($file) {
+			return ($file !== '.' && $file !== '..');
+		};
+	}
+
+	$files = scandir($dir);
+	$result = true;
+	foreach ($files as $name) {
+		if ( ! $filter($name)) {
+			continue;
+		}
+
+		$file = $dir.'/'.$name;
+		if (is_dir($file)) {
+			$result =
+				$result
+				&& file_empty_dir($file, $filter) // ! рекурсия
+				&& @rmdir($file);
+		} else {
+			$result = $result && @unlink($file);
+		}
+	}
+
+	return $result;
 }

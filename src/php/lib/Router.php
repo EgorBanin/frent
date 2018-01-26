@@ -1,7 +1,5 @@
 <?php
 
-namespace frent;
-
 class Router {
 	
 	private $routes;
@@ -10,31 +8,26 @@ class Router {
 		$this->routes = $routes;
 	}
 	
-	public function route($url, $actionDir) {
+	public function route($url) {
 		$params = [];
 		$pattern = arr_usearch($this->routes, function($pattern) use($url, &$params) {
 			$matches = [];
 			if (preg_match($pattern, $url, $matches) === 1) {
 				foreach ($matches as $name => $value) {
-					if ( ! ctype_digit((string) $name)) {
+					if (is_string($name)) {
 						$params[$name] = $value;
 					}
 				}
-
 				return $pattern;
 			}
 		});
 		
 		if ($pattern !== false) {
-			$actionFile = $actionDir.'/'.str_template($this->routes[$pattern], $params);
-			
-			if (is_readable($actionFile)) {
-				$action = require $actionFile;
-				
-				return [$action, $params];
-			}
+			$handlerFile = str_template($this->routes[$pattern], $params);
+
+			return [$handlerFile, $params];
 		}
 		
-		return false;
+		return [null, []];
 	}
 }

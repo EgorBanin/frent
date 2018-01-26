@@ -1,7 +1,7 @@
 <?php
 
 require_once __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/func_all.php';
+require __DIR__ . '/lib/func_all.php';
 
 $router = new Router([
 	'~^get /$~' => 'index.php',

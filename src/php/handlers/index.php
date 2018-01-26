@@ -1,8 +1,9 @@
 <?php
 
-namespace frent;
-
-return function($app, $params) {
+return function($rq, $rs, $global) {
 	
-	return 1;
+	return $rs->setBody(ob_include(__DIR__ . '/index.phtml', [
+		'content' => 'Frent!',
+	]));
+
 };
