@@ -11,7 +11,7 @@ $httpRequest = (object) io_get_request();
 list($handlerFile, $params) = $router->route(
 	strtolower($httpRequest->method) . ' ' . $httpRequest->url
 );
-$rq = new Request($httpRequest, $params);
+$rq = new Request($httpRequest, $params, $_SERVER['REMOTE_ADDR']);
 $configFile = getenv('PHP_USER_CONFIG')?: 'config.php';
 $configPath = __DIR__ . '/' . $configFile;
 $app = new App($configPath, $rq);

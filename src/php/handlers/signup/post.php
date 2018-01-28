@@ -13,7 +13,7 @@ return function($rq, $rs, $globals) {
 	}
 
 	if (empty($errors)) {
-		$userStorage = new \users\Storage($globals->getDb());
+		$userStorage = new \User\Storage($globals->getDb());
 		$anotherUser = $userStorage->getByLogin($login);
 		if ($anotherUser) {
 			$errors[] = 'Пользователь с таким именем уже зарегистрирован.';
@@ -27,9 +27,9 @@ return function($rq, $rs, $globals) {
 			'data' => '{}',
 			'active' => true,
 		]);
-		$auth = new \users\Auth($globals->getSession());
+		$auth = new \User\Auth($globals->getSession());
 		$auth->logout();
-		$sessionId = $auth->login($userId, \users\Auth::fingerprint(), 0);
+		$sessionId = $auth->login($userId, \User\Auth::fingerprint(), 0);
 	}
 	
 	return $rs

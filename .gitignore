@@ -1,4 +1,4 @@
-src/php/private/vendor
+src/php/vendor
 src/js/node_modules
 .*
 !.gitignore

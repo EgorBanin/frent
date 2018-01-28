@@ -1,6 +1,6 @@
 <?php
 
-return function($rq, $rs, $globals) {
+return function(Request $rq, Response $rs, Registry $globals) {
 
 	$login = $rq->post('login');
 	$password = $rq->post('password');
@@ -9,7 +9,7 @@ return function($rq, $rs, $globals) {
 	$errors = [];
 	
 	if (empty($login)) {
-		$errors['login'] = 'Обязательно укажите логин';
+		$errors['login'] = 'Обязательно укажите имя';
 	}
 	
 	if (empty($password)) {
@@ -17,13 +17,17 @@ return function($rq, $rs, $globals) {
 	}
 	
 	if (empty($errors)) {
-		$userStorage = new \users\Storage($globals->getDb());
+		$userStorage = new \User\Storage($globals->getDb());
 		$user = $userStorage->getByLogin($login);
 		if ($user && $user->active) {
 			if ($user->passwordHash === $userStorage->passwordHash($password, $login)) {
-				$auth = new \users\Auth($globals->getSession());
+				$auth = new \User\Auth($globals->getSession());
 				$auth->logout();
-				$sessionId = $auth->login($user->id, \users\Auth::fingerprint(), $remember? (60 * 60 * 24 * 7) : 0);
+				$sessionId = $auth->login(
+					$user->id,
+					\User\Auth::fingerprint(),
+					$remember? (60 * 60 * 24 * 7) : 0
+				);
 			} else {
 				$errors['password'] = 'Неверный пароль';
 			}
@@ -42,7 +46,7 @@ return function($rq, $rs, $globals) {
 	}
 	
 	return $rs
-		->setCode(empty($errors)? 200 : 403)
+		->setCode(empty($errors)? 201 : 403)
 		->setBody(
 			json_encode([
 				'user' => $userData,

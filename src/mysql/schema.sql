@@ -35,7 +35,7 @@ create table `profiles` (
 	`summary` varchar(3000) not null,
 	`userId` int unsigned not null comment 'id создателя/владельца',
 	`ct` int unsigned not null comment 'timestamp времени создания',
-	primary key (`id`),
+	primary key (`id`)
 )
 engine InnoDB
 comment 'Профайлы пользователей';
@@ -59,7 +59,7 @@ create table `things` (
 	`title` varchar(255) not null,
 	`description` varchar(3000) not null,
 	primary key (`id`),
-	key `ownerId` (`ownerId`)
+	key `ownerId` (`profileId`)
 )
 engine InnoDB
 comment 'Вещи';

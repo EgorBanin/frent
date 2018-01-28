@@ -27,8 +27,8 @@ class Registry {
 
 	public function getSession(): \session\Session {
 		if ($this->session === null) {
-			$sessionController = new \session\Controller(
-				new \session\Storage($this->getDb())
+			$sessionController = new \Session\Controller(
+				new \Session\Storage($this->getDb())
 			);
 			$session = $sessionController->start($this->app->getRequest());
 			$this->app->addAfterHandler(function($rq, $rs, $global) use($sessionController, $session) {
