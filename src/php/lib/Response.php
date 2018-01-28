@@ -13,6 +13,10 @@ class Response {
 		$this->headers = $headers;
 		$this->body = $body;
 	}
+	
+	public static function redirect($location, $code) {
+		return new self($code, ['Location: ' . $location], '');
+	}
 
 	public static function ok(array $headers = [], string $body = ''): self {
 		return new self(200, [], '');
